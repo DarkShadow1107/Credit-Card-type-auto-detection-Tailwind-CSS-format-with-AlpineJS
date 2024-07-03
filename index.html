@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased h-full font-sans bg-gray-100">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Credit Card type auto-detection Tailwind CSS &amp; format with AlpineJS</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<!-- @font-face :: Inter -->
+		<link rel="preload" href="https://rsms.me/inter/inter.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+		<noscript><link rel="stylesheet" href="https://rsms.me/inter/inter.css" /></noscript>
+		<!-- Alpine.js -->
+		<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+		<!-- Tailwind CSS -->
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+		<link rel="stylesheet" href="css/style.css" />
+	</head>
+	<body>
+		<!-- Tailwind CSS :: styles -->
+		<style type="text/tailwindcss">
+			@layer base {
+			}
+			@layer components {
+			}
+			@layer utilities {
+				.content-auto {
+					content-visibility: auto;
+				}
+			}
+		</style>
+		<!-- Tailwind CSS :: config -->
+		<script>
+			tailwind.config = {
+				theme: {
+					extend: {
+						colors: {
+							clifford: "#da373d",
+						},
+					},
+				},
+				darkMode: "media",
+			};
+		</script>
+
+		<div class="grid place-items-center w-screen h-screen p-4 bg-gray-50 dark:bg-gray-900">
+			<form class="max-w-md mx-auto" autocomplete="off" x-data="creditCard()" x-init="init()" @submit.prevent>
+				<div class="grid grid-cols-3 gap-6">
+					<label for="cc" class="relative block w-full col-span-3">
+						<span class="text-sm font-medium leading-normal text-gray-700 dark:text-gray-200">Card number</span>
+						<p class="py-1 text-xs leading-normal text-gray-600 dark:text-gray-400">
+							As a user types, the number should be formatted with spaces for legibility based on the pattern the
+							type of card uses.
+						</p>
+						<input
+							type="text"
+							name="cc"
+							id="cc"
+							placeholder="XXXX XXXX XXXX XXXX"
+							autocomplete="false"
+							spellcheck="false"
+							inputmode="numeric"
+							x-model="ccNum"
+							x-bind:maxlength="ccLength"
+							x-on:keyup="formatCreditCard()"
+							class="appearance-none outline-none relative block w-full h-11 mt-2 px-3 py-2.5 text-base font-mono font-medium leading-normal tracking-wider border rounded transition duration-150 ease-in-out border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-50 bg-white dark:bg-gray-800 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-[#1e90ff] dark:focus-visible:ring-[#ffd700] focus-visible:text-gray-700 focus-visible:bg-indigo-50 dark:focus-visible:text-gray-100 dark:focus-visible:bg-indigo-600/10 focus-visible:border-[#1e90ff] dark:focus-visible:border-[#ffd700] focus-visible:shadow-inner hover:border-gray-500 dark:hover:bg-black/10"
+						/>
+						<span
+							class="absolute top-0 right-0 block text-sm font-medium tracking-wider text-blue-600 dark:text-amber-300"
+							x-text=" ccType ? ccType.name : '' "
+						></span>
+					</label>
+					<label for="expiry" class="relative block w-full col-span-3 sm:col-span-2">
+						<span class="text-sm font-medium leading-normal text-gray-700 dark:text-gray-200">Expiration date</span>
+						<p class="py-1 text-xs leading-normal text-gray-600 dark:text-gray-400">
+							As a user types, a slash should automatically be added once a month is entered. If no year is present
+							and the user hits backspace, it should delete the slash and the second digit of the month
+						</p>
+						<input
+							type="text"
+							name="expiry"
+							id="expiry"
+							maxlength="9"
+							placeholder="MM / YYYY"
+							autocomplete="false"
+							spellcheck="false"
+							inputmode="numeric"
+							x-model="expiry"
+							x-on:keyup="formatExpiryInput($event)"
+							class="appearance-none outline-none relative block w-full h-11 mt-2 px-3 py-2.5 text-base font-mono font-medium leading-normal border rounded transition duration-150 ease-in-out border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-[#1e90ff] dark:focus-visible:ring-[#ffd700] focus-visible:text-gray-700 focus-visible:bg-indigo-50 dark:focus-visible:text-gray-100 dark:focus-visible:bg-indigo-600/10 focus-visible:border-[#1e90ff] dark:focus-visible:border-[#ffd700] focus-visible:shadow-inner hover:border-gray-500 dark:hover:bg-black/10"
+						/>
+					</label>
+					<label for="cvv" class="relative block w-full col-span-3 sm:col-span-1">
+						<span class="text-sm font-medium leading-normal text-gray-700 dark:text-gray-200">CVV</span>
+						<p class="py-1 text-xs leading-normal text-gray-600 dark:text-gray-400">
+							The max length of this field should be 3 for most card types, 4 for American Express
+						</p>
+						<input
+							type="text"
+							name="cvv"
+							id="cvv"
+							x-bind:maxlength="ccSecurity"
+							placeholder="CVV"
+							autocomplete="false"
+							spellcheck="false"
+							inputmode="numeric"
+							class="appearance-none outline-none relative block w-full h-11 mt-2 px-3 py-2.5 text-base font-mono font-medium leading-normal border rounded transition duration-150 ease-in-out border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-800 focus-visible:ring-inset focus-visible:ring-1 focus-visible:ring-[#1e90ff] dark:focus-visible:ring-[#ffd700] focus-visible:text-gray-700 dark:focus-visible:text-gray-100 focus-visible:bg-indigo-50 dark:focus-visible:bg-indigo-600/10 focus-visible:border-[#1e90ff] dark:focus-visible:border-[#ffd700] focus-visible:shadow-inner hover:border-gray-500 dark:hover:bg-black/10"
+						/>
+					</label>
+				</div>
+			</form>
+			<!--
+    ========================================
+    Non-essential :: Build-with logos
+    ========================================
+    -->
+			<div class="w-full max-w-[320px] mx-auto">
+				<p class="py-2 text-xs font-mono font-medium text-center lowercase text-gray-600 dark:text-gray-400">
+					Build with
+				</p>
+				<div class="flex items-center justify-between space-y-2 w-full">
+					<svg
+						class="w-auto h-4 fill-gray-700 dark:fill-gray-300"
+						width="192"
+						height="24"
+						viewBox="0 0 262 33"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<path
+							fill="#06B6D4"
+							d="M27 0c-7.2 0-11.7 3.6-13.5 10.8 2.7-3.6 5.85-4.95 9.45-4.05 2.054.513 3.522 2.004 5.147 3.653C30.744 13.09 33.808 16.2 40.5 16.2c7.2 0 11.7-3.6 13.5-10.8-2.7 3.6-5.85 4.95-9.45 4.05-2.054-.513-3.522-2.004-5.147-3.653C36.756 3.11 33.692 0 27 0zM13.5 16.2C6.3 16.2 1.8 19.8 0 27c2.7-3.6 5.85-4.95 9.45-4.05 2.054.514 3.522 2.004 5.147 3.653C17.244 29.29 20.308 32.4 27 32.4c7.2 0 11.7-3.6 13.5-10.8-2.7 3.6-5.85 4.95-9.45 4.05-2.054-.513-3.522-2.004-5.147-3.653C23.256 19.31 20.192 16.2 13.5 16.2z"
+						/>
+						<text
+							x="64"
+							y="30"
+							text-anchor="start"
+							style="
+								font-size: 36px;
+								font-family: Poppins-SemiBold, Poppins;
+								font-weight: 600;
+								letter-spacing: -0.05rem;
+							"
+						>
+							tailwindcss
+						</text>
+					</svg>
+					<svg
+						class="w-auto h-5 fill-gray-600 dark:fill-gray-300"
+						width="148"
+						height="24"
+						viewBox="0 0 148 24"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<rect hidden fill="none" stroke="none" width="148" height="24" />
+						<path fill="#77c1d2" d="M30.46.49l8.7,8.67-8.7,8.66-8.7-8.66Z" />
+						<path fill="#2d3441" class="fill-slate-500" d="M8.7.49l18,18H9.34L0,9.16Z" />
+						<text style="font-size: 1.15rem; font-weight: 800" class="" x="48" y="16" text-anchor="start">
+							Alpine.js
+						</text>
+					</svg>
+				</div>
+			</div>
+		</div>
+		<script src="js/script.js"></script>
+	</body>
+</html>
